@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "social_auth",
     'rest_framework',
     'rest_framework_simplejwt',
     'Account',
@@ -47,6 +48,53 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
+}
+
+def custom_save_data(*args, **kwargs) : 
+    from django.contrib.auth.models import User
+    user = kwargs['user'] # the incomming user from the social platfrom
+    u, _ = User.objects.get_or_create(
+        username=user['email'].split('@')[0],
+        email=user['email']
+    )
+    u.save()
+    return u
+
+def github_save_data(*args, **kwargs) : 
+    from django.contrib.auth.models import User
+    user = kwargs['user'] # the incomming user from github
+    u, _ = User.objects.get_or_create(
+        username=user['login'],
+    )
+    u.save()
+    return u
+
+
+SOCIAL_AUTH = {
+    
+    'google' : {
+        'client_id' : "GOOGLE_CLIENT_ID",
+        'client_secret' : "GOOGLE_CLIENT_SECRET",
+        'redirect_url' : 'FRONTE_END_SERVER_REDIRECT_URL', # your frontend server
+        'save_user_data' : custom_save_data
+    },
+    
+    'facebook' : {
+        'client_id' : "FB_CLIENT_ID",
+        'client_secret' : "FB_CLIENT_SECRET",
+        'redirect_url' : 'FRONTE_END_SERVER_REDIRECT_URL', # your frontend server,
+        'save_user_data' : custom_save_data
+
+    },
+
+    'github' : {
+        'client_id' : 'GITHUB_CLIENT_ID',
+        'client_secret' : 'GITHUB_CLIENT_SECRET',
+        'redirect_url' : 'FRONTE_END_SERVER_REDIRECT_URL', 
+        'save_user_data' : github_save_data
+
+    }
+
 }
 
 MIDDLEWARE = [
