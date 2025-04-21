@@ -36,3 +36,30 @@ def register(request):
 def user_detail(request):
     user = UserSerializer(request.user, many=False)
     return Response(user.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    user = request.user
+    data = request.data 
+
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+
+    if len(new_password) < 8:
+        return Response({'error': 'New password have to be 8 chars.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if new_password == old_password:
+        return Response({"error": "You heve to enter difrent password."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # if not old_password or not new_password:
+    #     return Response({'error': 'Both old password and new password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not user.check_password(old_password):
+        return Response({'error': 'Old password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user.set_password(new_password)
+    user.save()
+
+    return Response({'details': 'Password Changed Successfully...'}, status=status.HTTP_200_OK)
