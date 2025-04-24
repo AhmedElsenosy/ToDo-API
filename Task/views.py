@@ -37,9 +37,36 @@ def get_task(request, pk):
     try:
         task = Task.objects.get(pk = pk, user = request.user)
     except Task.DoesNotExist:
-        return Response({'error': 'task not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
     serializer = TaskSerializer(task)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_task(request, pk):
+    try:
+        task = Task.objects.get(pk = pk, user = request.user)
+    except Task.DoesNotExist:
+        return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = TaskSerializer(task, data = request.data, partial = True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_task(request, pk):
+    try:
+        task = Task.objects.get(pk = pk, user = request.user)
+    except Task.DoesNotExist:
+        return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    task.delete()
+    return Response({'details': 'Task Deleted Successfully...'})
 
 
 
